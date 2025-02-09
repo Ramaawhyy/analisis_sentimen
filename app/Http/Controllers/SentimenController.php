@@ -10,24 +10,25 @@ class SentimenController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-    $perPage = $request->input('show', 25); // Default is 25 if not provided
-
-    $reviews = VisitorReview::when($search, function ($query) use ($search) {
-        return $query->where('review', 'LIKE', "%{$search}%");
-    })->paginate($perPage);
-
+        $perPage = $request->input('show', 25); // Default 25 jika tidak disediakan
+    
+        $reviews = VisitorReview::when($search, function ($query) use ($search) {
+            return $query->where('review', 'LIKE', "%{$search}%");
+        })->paginate($perPage);
+    
         foreach ($reviews as $review) {
             $clean_review = $this->removeEmoji($review->review);
             $sentiment = $this->analyzeSentiment($clean_review);
-            
-            // Menyimpan clean_review dan sentiment ke dalam database
+    
+            // Simpan ke database
             $review->clean_review = $clean_review;
             $review->sentiment = $sentiment;
-            $review->save(); // Simpan perubahan ke dalam database
+            $review->save();
         }
-
+    
         return view('sentimen_form', compact('reviews', 'perPage', 'search'));
     }
+    
 
     private function removeEmoji($text) {
         // Regex untuk menghilangkan emoji lebih luas
